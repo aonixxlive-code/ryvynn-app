@@ -7,24 +7,32 @@
     <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
-    <h1>RYVYNN Plus</h1>
+   <h1>RYVYNN Plus</h1>
     <p>Subscribe to unlock all features.</p>
     <button id="subscribe-btn">Start RYVYNN Plus</button>
+  >
     <script>
-      const stripe = Stripe('%NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY%');
-      document.getElementById('subscribe-btn').addEventListener('click', async () => {
-        const res = await fetch('/api/create-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ priceId: '%NEXT_PUBLIC_STRIPE_PRICE%' })
-        });
-        const data = await res.json();
-        if (data.id) {
-          await stripe.redirectToCheckout({ sessionId: data.id });
-        } else {
-          alert('Error creating checkout session.');
-        }
+  async function initializeCheckout() {
+    const resConfig = await fetch('/api/config');
+    const { publishableKey, priceId } = await resConfig.json();
+    const stripe = Stripe(publishableKey);
+    document.getElementById('subscribe-btn').addEventListener('click', async () => {
+      const response = await fetch('/api/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId })
       });
-    </script>
+      const data = await response.json();
+      if (data.id) {
+        await stripe.redirectToCheckout({ sessionId: data.id });
+      } else {
+        alert('Error creating checkout session.');
+      }
+    });
+  }
+  initializeCheckout();
+    
+</script>
+
   </body>
 </html>
